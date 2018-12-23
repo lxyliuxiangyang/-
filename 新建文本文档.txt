@@ -1,0 +1,73 @@
+基于Vue的省市区三联的地区选择器V-Distpicker的使用及踏过的坑...
+2018年08月03日 14:32:00 云中客youroch 阅读数：990 标签： Vue Element E  更多
+个人分类： Vue 前端
+    最近用的Vue+Element UI时，有些地方需要用到省市区三联选择器，网上安装并尝试了多种类似的插件，但都因为无法正常实现或是没有眼缘而弃用了。最后选择的是V-Distpicker这种，配置和使用起来还算是比较简单的，下面就分享一下其用法和需要注意的点（需要踩过的坑）。
+
+1.使用方法
+    安装和文档，请查看官网https://distpicker.pigjian.com/ 
+
+                          同性交友网站https://github.com/jcc/v-distpicker
+
+    有些小伙伴要说了，不是说好了分享使用方法吗？扔出两个链接就完事啦？嗯...其实呢，我是觉得这个作者文档写的很不错了各种用法介绍的很到位，而且在官网你还能尝试具体操作的嘛（其实就是懒）。
+
+2.需要注意的点
+    如果是自己玩的话，作者提供的方法就够了，我用的是三级关联不带初始值的这种
+
+
+
+官网的code :
+
+<template>
+  <v-distpicker @selected="onSelected"></v-distpicker>
+<template>
+
+<script>
+import VDistpicker from 'v-distpicker'
+
+export default {
+  components: { VDistpicker },
+  methods: {
+    onSelected(data) {
+      alert(data.province + ' | ' + data.city + ' | ' + data.area)
+      console.log(data)
+    },
+  }
+}
+</script>
+    这个插件的用法简单，重点就是注意province、city、area值的绑定，这里我用的官方给的selected方法，选择最后一项后触发，talk is cheap,show code !
+
+<v-distpicker v-show="isShowProvince" :class="{'disabled-select': dialogStatus=='update'}" :province="temp.address__province" :city="temp.address__city" :area="temp.address__dist" @selected="onSelected"></v-distpicker>
+
+<script>
+import VDistpicker from 'v-distpicker'
+
+export default {
+  components: { VDistpicker },
+ data() {
+    return {
+      temp: {
+        address__province: '',
+        address__city: '',
+        address__dist: '',
+      },
+    }
+  },
+  methods: {
+    onSelected(data) {
+      this.temp.address__province = data.province.value
+      this.temp.address__city = data.city.value
+      this.temp.address__dist = data.area.value
+    }
+}
+之后根据每个项目网络接口不同，把值传给后端就行啦。
+
+    然而在用Element UI进行表单验证（是否为必填项）的时候，踩了一个坑。Element  UI 验证的时候，是依次验证每一项有没有选择框没填，然而V-Distpicker这东西一个插件里面有三个选择框即需要绑定三个值，这时我灵感一来使用的方法是Element  UI表单验证只验证area的值，因为只有你province与city都选择了，才有可能area也选择了，尝试了一下，大功告成！
+
+    通过样式穿透的方法，可以更改其子组件的样式：
+
+.disabled-select >>> select {
+  background-color: #f5f7fa;
+  border-color: #e4e7ed;
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
